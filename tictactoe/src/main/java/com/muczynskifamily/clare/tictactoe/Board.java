@@ -6,13 +6,12 @@ package com.muczynskifamily.clare.tictactoe;
 final public class Board {
     // Named-constants for the dimensions
 
-    public static final int TOTAL_NUMBER_OF_ROWS = 3;
-    public static final int TOTAL_NUMBER_OF_COLS = 3;
+    public static final int TOTAL_NUMBER_OF_ROWS_OR_COLS = 3;
 
     /**
      * the 3x3 board: a board composes of ROWS-by-COLS Cell instances
      */
-    Cell[][] cells;
+    Seed[][] cells;
 
     /**
      * the current seed's row and column -- the last played move
@@ -23,12 +22,8 @@ final public class Board {
      * Constructor to initialize the game board
      */
     public Board() {
-        cells = new Cell[TOTAL_NUMBER_OF_ROWS][TOTAL_NUMBER_OF_COLS];  // allocate the array
-        for (int row = 0; row < TOTAL_NUMBER_OF_ROWS; ++row) {
-            for (int col = 0; col < TOTAL_NUMBER_OF_COLS; ++col) {
-                cells[row][col] = new Cell(); // allocate element of the array
-            }
-        }
+        cells = new Seed[TOTAL_NUMBER_OF_ROWS_OR_COLS][TOTAL_NUMBER_OF_ROWS_OR_COLS];  // allocate the array
+        init(Seed.EMPTY);
     }
 
     /**
@@ -37,9 +32,9 @@ final public class Board {
      * @param value
      */
     public void init(Seed value) {
-        for (int row = 0; row < TOTAL_NUMBER_OF_ROWS; ++row) {
-            for (int col = 0; col < TOTAL_NUMBER_OF_COLS; ++col) {
-                cells[row][col].content = value;
+        for (int row = 0; row < TOTAL_NUMBER_OF_ROWS_OR_COLS; ++row) {
+            for (int col = 0; col < TOTAL_NUMBER_OF_ROWS_OR_COLS; ++col) {
+                cells[row][col] = value;
             }
         }
     }
@@ -50,9 +45,9 @@ final public class Board {
      * @return
      */
     public boolean isDraw() {
-        for (int row = 0; row < TOTAL_NUMBER_OF_ROWS; ++row) {
-            for (int col = 0; col < TOTAL_NUMBER_OF_COLS; ++col) {
-                if (cells[row][col].content == Seed.EMPTY) {
+        for (int row = 0; row < TOTAL_NUMBER_OF_ROWS_OR_COLS; ++row) {
+            for (int col = 0; col < TOTAL_NUMBER_OF_ROWS_OR_COLS; ++col) {
+                if (cells[row][col] == Seed.EMPTY) {
                     return false; // an empty seed found, not a draw, exit
                 }
             }
@@ -68,20 +63,28 @@ final public class Board {
      * @return
      */
     public boolean hasWon(Seed theSeed) {
-        return (cells[currentRow][0].content == theSeed // 3-in-the-row
-                && cells[currentRow][1].content == theSeed
-                && cells[currentRow][2].content == theSeed
-                || cells[0][currentCol].content == theSeed // 3-in-the-column
-                && cells[1][currentCol].content == theSeed
-                && cells[2][currentCol].content == theSeed
-                || currentRow == currentCol // 3-in-the-diagonal
-                && cells[0][0].content == theSeed
-                && cells[1][1].content == theSeed
-                && cells[2][2].content == theSeed
-                || currentRow + currentCol == 2 // 3-in-the-opposite-diagonal
-                && cells[0][2].content == theSeed
-                && cells[1][1].content == theSeed
-                && cells[2][0].content == theSeed);
+        return horizontalRowAllMatches(theSeed)
+                || verticalColumnAllMatches(theSeed)
+                || upperLeftToLowerRightDiagonal(theSeed)
+                || upperRightToLowerLeftDiagonal(theSeed);
+    }
+
+    private boolean horizontalRowAllMatches(Seed theSeed) {
+        return cells[currentRow][0] == theSeed // 3-in-the-row
+                && cells[currentRow][1] == theSeed
+                && cells[currentRow][2] == theSeed;
+    }
+
+    private boolean verticalColumnAllMatches(Seed theSeed) {
+        return cells[0][currentCol] == theSeed // 3-in-the-column
+                && cells[1][currentCol] == theSeed
+                && cells[2][currentCol] == theSeed;
+    }
+
+    private boolean upperLeftToLowerRightDiagonal(Seed theSeed) {
+        return cells[0][0] == theSeed
+                && cells[1][1] == theSeed
+                && cells[2][2] == theSeed;
     }
 
     /**
@@ -91,17 +94,17 @@ final public class Board {
      */
     public String paint() {
         StringBuilder stringBuilder = new StringBuilder(1000);
-        for (int row = 0; row < TOTAL_NUMBER_OF_ROWS; ++row) {
-            for (int col = 0; col < TOTAL_NUMBER_OF_COLS; ++col) {
-                stringBuilder.append(" " +
-                        cells[row][col].content.getCharacter() + " ");
-                if (col < TOTAL_NUMBER_OF_COLS - 1) {
+        for (int row = 0; row < TOTAL_NUMBER_OF_ROWS_OR_COLS; ++row) {
+            for (int col = 0; col < TOTAL_NUMBER_OF_ROWS_OR_COLS; ++col) {
+                stringBuilder.append(" "
+                        + cells[row][col].getCharacter() + " ");
+                if (col < TOTAL_NUMBER_OF_ROWS_OR_COLS - 1) {
                     stringBuilder.append(VERTICAL_BAR);
                 }
             }
             stringBuilder.append("\n");
-   
-            if (row < TOTAL_NUMBER_OF_ROWS - 1) {
+
+            if (row < TOTAL_NUMBER_OF_ROWS_OR_COLS - 1) {
                 stringBuilder.append(HORIZONTAL_BAR);
                 stringBuilder.append("\n");
             }
@@ -113,4 +116,10 @@ final public class Board {
     private static final String HORIZONTAL_BAR = "-----------";
 
     private static final String VERTICAL_BAR = "|";
+
+    private boolean upperRightToLowerLeftDiagonal(Seed theSeed) {
+        return cells[0][2] == theSeed
+                && cells[1][1] == theSeed
+                && cells[2][0] == theSeed;
+    }
 }

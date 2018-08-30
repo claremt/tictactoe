@@ -10,14 +10,18 @@ public final class GameMain {
 
     private final Board board;            // the game board
     private GameState currentState; // the current state of the game (of enum GameState)
-    private Seed currentPlayer;     // the current player (of enum Seed)
 
-    private final static Scanner IN = new Scanner(System.in);  // input Scanner
+     // the current player (of enum Seed)
+    private Seed currentPlayer;
+
+    // input Scanner
+    private final Scanner IN;  
 
     /**
      * Constructor to setup the game
      */
     public GameMain() {
+        this.IN = new Scanner(System.in);
         board = new Board();  // allocate game-board
 
         // Initialize the game-board and current status
@@ -33,7 +37,7 @@ public final class GameMain {
 
             System.out.println(board.paint());
 
-            updateGame(currentPlayer); // update currentState
+            currentState = computeNewGameState(currentPlayer); // update currentState
 
             if (null != currentState) // Print message if game-over
             {
@@ -93,43 +97,49 @@ public final class GameMain {
             char playerCharacter = theSeed.getCharacter();
             System.out.print("Player '" + playerCharacter + "', enter your move (row[1-3] column[1-3]): ");
 
-            int row = IN.nextInt() - 1;
-            int col = IN.nextInt() - 1;
+            int rowIndex = IN.nextInt() - 1;
+            int colIndex = IN.nextInt() - 1;
 
-            if (validIndex(row) && validIndex(col)) {
-                if (board.cells[row][col].content == Seed.EMPTY) {
+            if (validIndex(rowIndex) && validIndex(colIndex)) {
+                if (board.cells[rowIndex][colIndex] == Seed.EMPTY) {
 
-                    board.cells[row][col].content = theSeed;
-                    board.currentRow = row;
-                    board.currentCol = col;
+                    board.cells[rowIndex][colIndex] = theSeed;
+                    board.currentRow = rowIndex;
+                    board.currentCol = colIndex;
                     validInput = true; // input okay, exit loop
                 }
             }
 
             if (!validInput) {
-                System.out.println("This move at (" + (row + 1) + "," + (col + 1)
+                System.out.println("This move at (" + (rowIndex + 1) + "," + (colIndex + 1)
                         + ") is not valid. Try again...");
             }
         } while (!validInput);   // repeat until input is valid
     }
 
     private boolean validIndex(int row) {
-        return row >= 0 && row < Board.TOTAL_NUMBER_OF_ROWS;
+        return row >= 0 && row < Board.TOTAL_NUMBER_OF_ROWS_OR_COLS;
     }
 
     /**
      * Update the currentState after the player with "theSeed" has moved
      *
-     * @param theSeed
+     * @param player which player has just played
+     * @return the new game state, for example, X won, O won, draw, ...
      */
-    public void updateGame(Seed theSeed) {
-        if (board.hasWon(theSeed)) {  // check for win
-            currentState = (theSeed == Seed.CROSS) ? GameState.CROSS_WON : GameState.NOUGHT_WON;
+    public GameState computeNewGameState(Seed player) {
+        GameState newState;
+        if (board.hasWon(player)) {  // check for win
+            newState = player.getWinnerState();
         } else if (board.isDraw()) {  // check for draw
-            currentState = GameState.DRAW;
+            newState = GameState.DRAW;
+        } else {
+            // Otherwise, still GameState.PLAYING
+            newState = GameState.PLAYING;
         }
 
-        // Otherwise, no change to current state (still GameState.PLAYING).
+        
+        return newState;
     }
 
     /**
